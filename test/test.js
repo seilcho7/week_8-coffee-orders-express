@@ -13,7 +13,7 @@ describe('Order model', () => {
     });
 
     it('should be able to retreive orders by id', async () => {
-        const theOrder = await Order.getById(1);
+        const theOrder = await Order.getById(3);
         expect(theOrder).to.be.instanceOf(Order);
         console.log(theOrder);
     });
