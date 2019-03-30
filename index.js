@@ -45,10 +45,35 @@ const server = http.createServer(async (req, res) => {
             });
         }
 
+        if (method === 'PUT') {
+            if (parts.length === 3) {
+                const orderId = parts[2];
+                let body = '';
+                
+                req.on('data', (chunk) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    const parsedBody = querystring.parse(body);
+                    await Order.update(orderId, parsedBody);
+                    res.end(`{ "id": ${orderId}}`);
+                });
+            }
+        }
+
+        if (method === 'DELETE') {
+            if (parts.length === 3) {
+                const orderId = parts[2];
+                await Order.delete(orderId);
+                res.end(`{ "message": "Deleted order with id ${orderId}"}`);
+            } else {
+                res.end(`{ "message": "NO."}`);
+            }
+        }
+
     } else {
-        res.end(`{
-            message: "Nooooooooooooooooooooo."
-        }`);
+        res.end(`{ "message": "Wrong address. Try again."}`);
     }
 });
 
