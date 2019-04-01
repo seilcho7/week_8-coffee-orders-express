@@ -1,82 +1,42 @@
-const http = require('http');
-const querystring = require('querystring');
+// const http = require('http');
+// const querystring = require('querystring');
 
-const hostname = '127.0.0.1';
+// const hostname = '127.0.0.1';
+const express = require('express');
+const app = express();
 const port = 3000;
 
 const Order = require('./models/orders');
 
-const server = http.createServer(async (req, res) => {
-    console.log(req);
+app.use(express.urlencoded({extended: true}));
 
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-
-    if (req.url.startsWith("/orders")) {
-        const parts = req.url.split('/');
-
-        const method = req.method;
-        if (method === "GET") {
-            if (parts.length === 2) {
-                const allOrders = await Order.getAll();
-                const ordersJSON = JSON.stringify(allOrders);
-                res.end(ordersJSON);
-            } else if (parts.length === 3) {
-                const orderId = parts[2];
-                const theOrder = await Order.getById(orderId);
-                const orderJSON = JSON.stringify(theOrder);
-                res.end(orderJSON);
-            } else {
-                res.statusCode = 404;
-                res.end('Resource not found.');
-            }
-        }
-        
-        if (method === 'POST') {
-            let body = '';
-            req.on('data', (chunk) => {
-                body += chunk.toString();
-            });
-
-            req.on('end', async () => {
-                const parsedBody = querystring.parse(body);
-                const newOrderId = await Order.add(parsedBody);
-                res.end(`{ "id": ${newOrderId}}`);
-            });
-        }
-
-        if (method === 'PUT') {
-            if (parts.length === 3) {
-                const orderId = parts[2];
-                let body = '';
-                
-                req.on('data', (chunk) => {
-                    body += chunk.toString();
-                });
-                
-                req.on('end', async () => {
-                    const parsedBody = querystring.parse(body);
-                    await Order.update(orderId, parsedBody);
-                    res.end(`{ "id": ${orderId}}`);
-                });
-            }
-        }
-
-        if (method === 'DELETE') {
-            if (parts.length === 3) {
-                const orderId = parts[2];
-                await Order.delete(orderId);
-                res.end(`{ "message": "Deleted order with id ${orderId}"}`);
-            } else {
-                res.end(`{ "message": "NO."}`);
-            }
-        }
-
-    } else {
-        res.end(`{ "message": "Wrong address. Try again."}`);
-    }
+app.get('/orders', async (req, res) => {
+    const allOrders = await Order.getAll();
+    res.json(allOrders);
 });
 
-server.listen(port, hostname, () => {
-    console.log(`Server is running at http://${hostname}:${port}`);
+app.get('/orders/:id', async (req, res) => {
+    const theOrder = await Order.getById(req.params.id);
+    res.json(theOrder);
+});
+
+app.post('/orders', async (req, res) => {
+    res.json(req.body);
+    await Order.add(req.body);
+});
+
+app.put('/orders/:id', async (req, res) => {
+    const {id} = req.params;
+    await Order.update(id, req.body);
+    res.end(`{ "id": "added order to ${id}}`);
+});
+
+app.delete('/orders/:id', async (req, res) => {
+    await Order.delete(req.params.id);
+    res.end(`{ "id": "deleted order ${req.params.id}}`);
+});
+
+
+app.listen(port, () => {
+    console.log(`Server is running on a port ${port}`);
 });
