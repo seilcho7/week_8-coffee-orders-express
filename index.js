@@ -17,6 +17,8 @@ app.post('/orders', Controller.orderAdd);
 
 app.put('/orders/:id', Controller.orderUpdate);
 
+// app.put('/orders/:id', )
+    // Call our Order.update() function with req.body
 app.delete('/orders/:id', Controller.orderDelete);
 
 app.listen(port, () => {
