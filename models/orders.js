@@ -60,8 +60,35 @@ class Order {
         `, [orderData.first_name, orderData.last_name, orderData.email, orderData.coffee_order, id]);
     }
 
+    // options:
+    // 1. Set the this.email property to the newEmail and then call .save()
+    async updateEmail(newEmail) {
+        this.email = newEmail;
+        await this.save();
+    }
+
+    // 2. Write a clever updater where the argument looks like: { first_name: 'oakley' }
+    // or { email: 'oakley@oakley.com', last_name: 'smith' }
+    async update(updatedInfo) {
+        Object.keys(updatedInfo).forEach(key => {
+            this[key] = updatedInfo[key];
+        });
+        await this.save();
+    }
+
     static delete(id) {
         return db.result(`delete from orders where id=$1`, [id]);
+    }
+
+    save() {
+        return db.result(`
+            update orders set
+                first_name='${this.firstName}',
+                last_name='${this.lastName}',
+                email='${this.email}',
+                coffee_order='${this.coffeeOrder}'
+            where id='${this.id}'
+        `);
     }
 }
 
